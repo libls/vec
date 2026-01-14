@@ -5,55 +5,108 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- * Lion's Standard (LS) ANSI C vector library.
+/* Lion's Standard (LS) type-safe ANSI C vector.
  *
- * This is a vector library, i.e. a dynamically sized array.
- * To get started, you have to declare your type:
+ * Version: 1.0
+ * Repo: https://github.com/lionkor/ls_vec
+ * SPDX-License-Identifier: MIT
  *
- *      VEC(int)
+ * ==== TABLE OF CONTENTS ====
  *
- * which creates a struct and the associated functions for a vec_int,
- * meaning a vector of type `int`. The resulting struct is named `vec_int`
- * and all associated functions are prefixed with that same name, for
- * example `vec_int_init`, `vec_int_push`, etc.
+ * 1. DESCRIPTION
+ * 2. HOW TO USE
+ * 3. LICENSE
  *
- * You can choose a name for long or complex types like this:
+ * ==== 1. DESCRIPTION ====
  *
- *      VEC_NAMED(int*, intp)
+ * A minimal, terse, generic (macro code generated) header-only library in ANSI
+ * C, which implements a vector (dynamically sized array).
  *
- * which results in vec_intp, vec_intp_push, etc. or
+ * The implementation uses standard malloc/realloc for memory management and
+ * automatically grows the capacity as needed. The memory allocator is
+ * configurable.
  *
- *      VEC_NAMED(struct Car, car)
+ * ==== 2. HOW TO USE ====
  *
- * which results in vec_car, vec_car_push, etc.
+ * Dynamically sized, type-safe vector.
  *
- * The VEC and VEC_NAMED macros create both the declaration and implementation.
- * If you'd like to split that, call
+ * Use LS_VEC_INLINE to generate a static inline version of the library.
+ * This is the "default" behavior.
  *
- *      VEC_DECL(int)
+ * If you need a declaration and implementation separately, use
+ * LS_VEC_DECL and make sure to call it with the same arguments as
+ * LS_VEC_IMPL. Put LS_VEC_DECL in a header, and LS_VEC_IMPL in exactly
+ * ONE source file.
  *
- * to generate the declarations, and somewhere else
+ * Simple example:
  *
- *      VEC_IMPL(int)
+ *     LS_VEC_INLINE(int, int_vector)
  *
- * to generate the implementation. The same with VEC_NAMED_DECL
- * and VEC_NAMED_IMPL.
+ *     // somewhere in the same file
+ *     int_vector vec;
+ *     int_vector_init(&vec);
+ *     int_vector_push(&vec, 42);
+ *     // use vec.data, vec.size, etc.
+ *     int_vector_clear(&vec);
  *
- * Full example:
+ * Alternative example with decl and impl split:
  *
- *      VEC(int)
+ *     // In your header file:
+ *     LS_VEC_DECL(int, int_vector)
  *
- *      int main(void) {
- *          vec_int vec;
- *          vec_int_init(&vec);
- *          for (int i = 0; i < 10; ++i) {
- *              vec_int_push(&vec, i);
- *          }
- *          vec_int_clear(&vec);
- *      }
+ *     // In one source file:
+ *     LS_VEC_IMPL(int, int_vector)
  *
+ *     // Usage in your code:
+ *     int_vector vec;
+ *     int_vector_init(&vec);
+ *     if (!int_vector_push(&vec, 42)) {
+ *         // handle allocation failure
+ *     }
+ *     // access elements via vec.data[i]
+ *     int_vector_clear(&vec);
+ *
+ * You can configure a custom memory allocator by defining the macros LS_REALLOC
+ * and LS_FREE globally. These are the only allocation functions required, and
+ * they are expected to behave exactly as the standard requires. For example,
+ * LS_FREE(NULL) must be valid, LS_REALLOC can fail, LS_REALLOC with NULL will
+ * act like malloc, etc.
+ *
+ * ==== 3. LICENSE ====
+ *
+ * This file is provided under the MIT license. For commercial support and
+ * maintenance, feel free to use the e-mail below to contact the author(s).
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026 Lion Kortlepel <development@kortlepel.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
+
+#ifndef LS_REALLOC
+#define LS_REALLOC realloc
+#endif
+
+#ifndef LS_FREE
+#define LS_FREE free
+#endif
 
 #define LS_VEC_DECL(T, name)                                                   \
     typedef struct name {                                                      \
@@ -79,7 +132,7 @@
     specifier void name##_init(name* vec) { memset(vec, 0, sizeof(*vec)); }    \
     specifier void name##_clear(name* vec) {                                   \
         if (vec->data) {                                                       \
-            free(vec->data);                                                   \
+            LS_FREE(vec->data);                                                \
             vec->data = NULL;                                                  \
         }                                                                      \
         vec->size = 0;                                                         \
@@ -98,7 +151,7 @@
             total = vec->capacity * sizeof(T);                                 \
             if (vec->capacity != 0 && total / vec->capacity != sizeof(T))      \
                 return 0; /* integer overflow */                               \
-            new_data = (T*)realloc(vec->data, total);                          \
+            new_data = (T*)LS_REALLOC(vec->data, total);                       \
             if (!new_data)                                                     \
                 return 0;                                                      \
             vec->data = new_data;                                              \
