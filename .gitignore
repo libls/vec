@@ -1,0 +1,4 @@
+tests/tests
+.cache/
+compile_commands.json
+examples/simple
