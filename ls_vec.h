@@ -8,7 +8,8 @@
 /* Lion's Standard (LS) type-safe ANSI C vector.
  *
  * Version: 1.0
- * Repo: https://github.com/lionkor/ls_vec
+ * Website: https://libls.org
+ * Repo: https://github.com/libls/vec
  * SPDX-License-Identifier: MIT
  *
  * ==== TABLE OF CONTENTS ====
@@ -79,7 +80,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2026 Lion Kortlepel <development@kortlepel.com>
+ * Copyright (c) 2026 Lion Kortlepel <libls@kortlepel.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
