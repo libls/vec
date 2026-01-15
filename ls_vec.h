@@ -1,10 +1,3 @@
-#pragma once
-
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-
 /* Lion's Standard (LS) type-safe ANSI C vector.
  *
  * Version: 1.0
@@ -100,6 +93,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef LS_REALLOC
 #define LS_REALLOC realloc
