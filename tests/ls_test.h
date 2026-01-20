@@ -1,6 +1,6 @@
 /* Lion's Standard (LS) test harness.
  *
- * Version: 1.0
+ * Version: 1.1
  * Website: https://libls.org
  * Repo: https://github.com/libls/test
  * SPDX-License-Identifier: MIT
