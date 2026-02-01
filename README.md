@@ -56,3 +56,9 @@ See [`ls_vec.h`](ls_vec.h) for detailed documentation and usage patterns.
 ## License
 
 MIT.
+
+## Links
+
+- [Website](https://libls.org)
+- [GitHub](https://github.com/libls/vec.git)
+- [LibLS Git](https://git.libls.org/vec.git)

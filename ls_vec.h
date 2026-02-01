@@ -2,7 +2,8 @@
  *
  * Version: 2.0
  * Website: https://libls.org
- * Repo: https://github.com/libls/vec
+ * GitHub: https://github.com/libls/vec
+ * Mirror: https://git.libls.org/vec.git
  * SPDX-License-Identifier: MIT
  *
  * ==== TABLE OF CONTENTS ====
