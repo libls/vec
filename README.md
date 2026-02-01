@@ -34,7 +34,7 @@ Minimal, single-header dynamic array (vector) for C.
     }
     // Access elements via vec.data[i]
     // Check size via vec.size
-    int_vector_clear(&vec);
+    int_vector_free(&vec);
     ```
 
 See [`ls_vec.h`](ls_vec.h) for detailed documentation and usage patterns.

@@ -1,6 +1,6 @@
 /* Lion's Standard (LS) type-safe ANSI C vector.
  *
- * Version: 1.0
+ * Version: 2.0
  * Website: https://libls.org
  * Repo: https://github.com/libls/vec
  * SPDX-License-Identifier: MIT
@@ -41,7 +41,7 @@
  *     int_vector_init(&vec);
  *     int_vector_push(&vec, 42);
  *     // use vec.data, vec.size, etc.
- *     int_vector_clear(&vec);
+ *     int_vector_free(&vec);
  *
  * Alternative example with decl and impl split:
  *
@@ -58,7 +58,7 @@
  *         // handle allocation failure
  *     }
  *     // access elements via vec.data[i]
- *     int_vector_clear(&vec);
+ *     int_vector_free(&vec);
  *
  * You can configure a custom memory allocator by defining the macros LS_REALLOC
  * and LS_FREE globally. These are the only allocation functions required, and
@@ -115,7 +115,7 @@
         T* data;                                                               \
     } name;                                                                    \
     void name##_init(name* vec);                                               \
-    void name##_clear(name* vec);                                              \
+    void name##_free(name* vec);                                               \
     int name##_reserve(name* vec, size_t count);                               \
     int name##_push(name* vec, T value);
 #define LS_VEC_IMPL(T, name) _ls_VEC_IMPL_DETAIL(T, name, )
@@ -130,7 +130,7 @@
 
 #define _ls_VEC_IMPL_DETAIL(T, name, specifier)                                \
     specifier void name##_init(name* vec) { memset(vec, 0, sizeof(*vec)); }    \
-    specifier void name##_clear(name* vec) {                                   \
+    specifier void name##_free(name* vec) {                                    \
         if (vec->data) {                                                       \
             LS_FREE(vec->data);                                                \
             vec->data = NULL;                                                  \
@@ -141,19 +141,20 @@
     specifier int name##_reserve(name* vec, size_t count) {                    \
         if (vec->capacity < count) {                                           \
             T* new_data;                                                       \
-            size_t total;                                                      \
-            if (count == 0) {                                                  \
-                vec->capacity = 5;                                             \
-            } else {                                                           \
-                size_t new_cap = (size_t)((float)vec->capacity * 1.6f + 1.0f); \
-                vec->capacity = new_cap > count ? new_cap : count;             \
+            size_t max_items = SIZE_MAX / sizeof(T);                           \
+            size_t new_cap = vec->capacity + vec->capacity / 2 + 8;            \
+            if (new_cap < count) {                                             \
+                new_cap = count;                                               \
             }                                                                  \
-            total = vec->capacity * sizeof(T);                                 \
-            if (vec->capacity != 0 && total / vec->capacity != sizeof(T))      \
-                return 0; /* integer overflow */                               \
-            new_data = (T*)LS_REALLOC(vec->data, total);                       \
-            if (!new_data)                                                     \
+            /* overflow check */                                               \
+            if (new_cap > max_items) {                                         \
                 return 0;                                                      \
+            }                                                                  \
+            new_data = (T*)LS_REALLOC(vec->data, new_cap * sizeof(T));         \
+            if (new_data == NULL) {                                            \
+                return 0;                                                      \
+            }                                                                  \
+            vec->capacity = new_cap;                                           \
             vec->data = new_data;                                              \
         }                                                                      \
         return 1;                                                              \
@@ -163,5 +164,12 @@
             return 0;                                                          \
         }                                                                      \
         vec->data[vec->size++] = value;                                        \
+        return 1;                                                              \
+    }                                                                          \
+    specifier int name##_pop(name* vec, T* out_value) {                        \
+        if (vec->size == 0) {                                                  \
+            return 0;                                                          \
+        }                                                                      \
+        *out_value = vec->data[--vec->size];                                   \
         return 1;                                                              \
     }
